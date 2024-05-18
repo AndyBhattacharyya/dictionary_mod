@@ -35,16 +35,19 @@ public class DictionaryGame implements ModInitializer {
 		String content = msg.getContent().getString();
 		if (this.word == null || this.word == "") {
 			if (content.equalsIgnoreCase("!begin")) {
-				s.getPlayerManager().broadcast(Text.literal(name + " will be picking the word!"), false);
-				this.currentName = name;
+				List<ServerPlayerEntity> players = s.getPlayerManager().players;
 				this.word = "";
+				this.currentName = players.get(new Random().nextInt(players.size())).getDisplayName().getString();
+				s.getPlayerManager().broadcast(Text.literal(this.currentName+" will be picking the word!"), false);
 			}
 		} else {
-			if (content.equalsIgnoreCase(this.word)) {
-				s.getPlayerManager().broadcast(Text.literal(name + " got the word!"), false);
-				s.getPlayerManager().broadcast(Text.literal("The word is: " + this.word), false);
-				this.currentName = null;
-				this.word = null;
+			if (!name.equals(this.currentName) && content.equalsIgnoreCase(this.word)) {
+				s.getPlayerManager().broadcast(Text.literal(name+" got the word!"), false);
+				s.getPlayerManager().broadcast(Text.literal("The word was: "+this.word), false);
+				s.getPlayerManager().broadcast(Text.literal(this.currentName+" picked the word."), false);
+				this.currentName = name;
+				this.word = "";
+				s.getPlayerManager().broadcast(Text.literal(this.currentName+" will be picking the word!"), false);
 			}
 		}
 	}
@@ -58,7 +61,7 @@ public class DictionaryGame implements ModInitializer {
 		if (!word.equals(""))  // ignore if we got the secret word
 			return true;
 		this.word = content.trim();
-		s.getPlayerManager().broadcast(Text.literal(name + " picked a word!"), false);
+		s.getPlayerManager().broadcast(Text.literal(this.currentName+" picked a word!"), false);
 		s.getPlayerManager().broadcast(Text.literal("Start guessing..."), false);
 		return false;
 	}
