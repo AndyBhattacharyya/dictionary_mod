@@ -17,6 +17,7 @@ public class DictionaryGame implements ModInitializer {
 	// That way, it's clear which mod wrote info, warnings, and errors.
     public static final Logger LOGGER = LoggerFactory.getLogger("dictionarygame");
 	String currentName;
+	String word;
 
 	@Override
 	public void onInitialize() {
@@ -30,23 +31,35 @@ public class DictionaryGame implements ModInitializer {
 
 	public void onChatMessage(SignedMessage msg, ServerPlayerEntity plr, MessageType.Parameters params) {
 		MinecraftServer s = plr.getServer();
-		currentName = plr.getDisplayName().getString();
-		s.sendMessage(Text.literal(plr.getDisplayName().getString() + " sent a message!"));
-		if (msg.getContent().getString().equalsIgnoreCase("!begin")) {
-			s.sendMessage(Text.literal("begin the game!!!"));
-			plr.sendMessage(Text.literal("aaaa"));
+		String name = plr.getDisplayName().getString();
+		String content = msg.getContent().getString();
+		if (this.word == null || this.word == "") {
+			if (content.equalsIgnoreCase("!begin")) {
+				s.getPlayerManager().broadcast(Text.literal(name + " will be picking the word!"), false);
+				this.currentName = name;
+				this.word = "";
+			}
+		} else {
+			if (content.equalsIgnoreCase(this.word)) {
+				s.getPlayerManager().broadcast(Text.literal(name + " got the word!"), false);
+				s.getPlayerManager().broadcast(Text.literal("The word is: " + this.word), false);
+				this.currentName = null;
+				this.word = null;
+			}
 		}
 	}
 
 	public boolean allowChatMessage(SignedMessage msg, ServerPlayerEntity plr, MessageType.Parameters params) {
 		MinecraftServer s = plr.getServer();
 		String name = plr.getDisplayName().getString();
-		if (currentName == null || !currentName.equals(name))  // let all other messages through
+		String content = msg.getContent().getString();
+		if (this.currentName == null || !this.currentName.equals(name))  // let all other messages through
 			return true;
-		String word = msg.getContent().getString();
-		s.sendMessage(Text.literal(name + " picked a string!"));
-		s.sendMessage(Text.literal("the string is:" + word));
-		currentName = null;
+		if (!word.equals(""))  // ignore if we got the secret word
+			return true;
+		this.word = content.trim();
+		s.getPlayerManager().broadcast(Text.literal(name + " picked a word!"), false);
+		s.getPlayerManager().broadcast(Text.literal("Start guessing..."), false);
 		return false;
 	}
 }
