@@ -8,8 +8,13 @@ import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.world.World;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+enum GAMESTATE {
+	GAMESTART, GAMEFINISH, GAMEWORD, GAMEEXAMPLE, NOGAME
+}
 
 public class DictionaryGame implements ModInitializer {
 	// This logger is used to write text to the console and the log file.
@@ -33,14 +38,38 @@ public class DictionaryGame implements ModInitializer {
 		if (msg.getContent().getString().equalsIgnoreCase("!begin")) {
 			s.sendMessage(Text.literal("begin the game!!!"));
 			plr.sendMessage(Text.literal("aaaa"));
-		}
-	}
 
+		}
+		plr.getServer().getPlayerManager().broadcast(Text.literal("Te"), true);
+	}
+	//static boolean GAMEON = true; <-- Wanted to implement a feature where it prevents multiple occurences of the same game
+
+	GAMESTATE state = GAMESTATE.NOGAME;
+	String game_word = "";
 	public boolean onMsgSent(SignedMessage msg, ServerPlayerEntity plr, MessageType.Parameters params) {
 		String msgToBeSent = msg.getContent().getString();
-		if (msgToBeSent.equalsIgnoreCase("no one can see this")) {
+
+		if(state.equals(GAMESTATE.GAMEEXAMPLE)){
+
+		}
+
+		if (state.equals(GAMESTATE.GAMEWORD)){
+			game_word = msg.getContent().getString();
+			state = GAMESTATE.GAMEEXAMPLE;
 			return false;
 		}
+
+		if (msgToBeSent.equalsIgnoreCase("!dict") && !state.equals(GAMESTATE.NOGAME)) {
+			state = GAMESTATE.GAMESTART;
+			plr.sendMessage(Text.literal("Enter your word:"));
+			state = GAMESTATE.GAMEWORD;
+			return true;
+
+		}
+		else{
+			plr.sendMessage(Text.literal("Sorry a game has already started"));
+		}
+
 		return true;
 	}
 }
