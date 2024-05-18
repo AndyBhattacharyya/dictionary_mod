@@ -24,6 +24,7 @@ public class DictionaryGame implements ModInitializer {
 		// Proceed with mild caution.
 		LOGGER.info("Hello Fabric world!");
 		ServerMessageEvents.CHAT_MESSAGE.register(this::onChatMessage);
+		ServerMessageEvents.ALLOW_CHAT_MESSAGE.register(this::onMsgSent);
 	}
 
 	public void onChatMessage(SignedMessage msg, ServerPlayerEntity plr, MessageType.Parameters params) {
@@ -33,5 +34,13 @@ public class DictionaryGame implements ModInitializer {
 			s.sendMessage(Text.literal("begin the game!!!"));
 			plr.sendMessage(Text.literal("aaaa"));
 		}
+	}
+
+	public boolean onMsgSent(SignedMessage msg, ServerPlayerEntity plr, MessageType.Parameters params) {
+		String msgToBeSent = msg.getContent().getString();
+		if (msgToBeSent.equalsIgnoreCase("no one can see this")) {
+			return false;
+		}
+		return true;
 	}
 }
