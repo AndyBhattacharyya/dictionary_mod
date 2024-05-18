@@ -35,7 +35,11 @@ public class DictionaryGame implements ModInitializer {
 		MinecraftServer s = plr.getServer();
 		String name = plr.getDisplayName().getString();
 		String content = msg.getContent().getString();
-		if (this.word == null || this.word == "") {
+		if (content.equalsIgnoreCase("!reset")) {
+			this.currentName = null;
+			this.word = null;
+			s.getPlayerManager().broadcast(Text.literal("Dictionary game has been reset."), false);
+		} else if (this.word == null || this.word == "") {
 			if (content.equalsIgnoreCase("!begin")) {
 				List<ServerPlayerEntity> players = s.getPlayerManager().getPlayerList();
 				this.word = "";
