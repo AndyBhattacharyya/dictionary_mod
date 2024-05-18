@@ -41,15 +41,15 @@ public class DictionaryGame implements ModInitializer {
 				this.word = "";
 				this.currentName = players.get(new Random().nextInt(players.size())).getDisplayName().getString();
 				s.getPlayerManager().broadcast(Text.literal(this.currentName+" will be picking the word!"), false);
+				plr.sendMessage("Pick a word to guess and send it.");
 			}
 		} else {
 			if (!name.equals(this.currentName) && content.equalsIgnoreCase(this.word)) {
 				s.getPlayerManager().broadcast(Text.literal(name+" got the word!"), false);
 				s.getPlayerManager().broadcast(Text.literal("The word was: "+this.word), false);
-				s.getPlayerManager().broadcast(Text.literal(this.currentName+" picked the word."), false);
 				this.currentName = name;
 				this.word = "";
-				s.getPlayerManager().broadcast(Text.literal(this.currentName+" will be picking the word!"), false);
+				s.getPlayerManager().broadcast(Text.literal(this.currentName+" will be picking the next word!"), false);
 			}
 		}
 	}
