@@ -1,5 +1,7 @@
 package com.example;
 
+import java.util.List;
+import java.util.Random;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
@@ -35,7 +37,7 @@ public class DictionaryGame implements ModInitializer {
 		String content = msg.getContent().getString();
 		if (this.word == null || this.word == "") {
 			if (content.equalsIgnoreCase("!begin")) {
-				List<ServerPlayerEntity> players = s.getPlayerManager().players;
+				List<ServerPlayerEntity> players = s.getPlayerManager().getPlayerList();
 				this.word = "";
 				this.currentName = players.get(new Random().nextInt(players.size())).getDisplayName().getString();
 				s.getPlayerManager().broadcast(Text.literal(this.currentName+" will be picking the word!"), false);
