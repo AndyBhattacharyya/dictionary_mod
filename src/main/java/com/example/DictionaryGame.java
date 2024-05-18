@@ -2,6 +2,7 @@ package com.example;
 
 import net.fabricmc.api.ModInitializer;
 
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
@@ -23,24 +24,8 @@ public class DictionaryGame implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 		LOGGER.info("Hello Fabric world!");
-		ServerMessageEvents.CHAT_MESSAGE.register(this::onChatMessage);
-		ServerMessageEvents.ALLOW_CHAT_MESSAGE.register(this::onMsgSent);
-	}
-
-	public void onChatMessage(SignedMessage msg, ServerPlayerEntity plr, MessageType.Parameters params) {
-		MinecraftServer s = plr.getServer();
-		s.sendMessage(Text.literal(plr.getDisplayName().getString() + " sent a message!"));
-		if (msg.getContent().getString().equalsIgnoreCase("!begin")) {
-			s.sendMessage(Text.literal("begin the game!!!"));
-			plr.sendMessage(Text.literal("aaaa"));
-		}
-	}
-
-	public boolean onMsgSent(SignedMessage msg, ServerPlayerEntity plr, MessageType.Parameters params) {
-		String msgToBeSent = msg.getContent().getString();
-		if (msgToBeSent.equalsIgnoreCase("no one can see this")) {
-			return false;
-		}
-		return true;
+//		ServerMessageEvents.CHAT_MESSAGE.register(DictionaryMod_PPQ::onChatMessage);
+		ServerMessageEvents.ALLOW_CHAT_MESSAGE.register(DictionaryMod_PPQ::onMsgSent);
+		ServerTickEvents.START_SERVER_TICK.register(DictionaryMod_PPQ::ticking);
 	}
 }
