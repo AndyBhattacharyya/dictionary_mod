@@ -47,5 +47,6 @@ public class DictionaryGame implements ModInitializer {
 		s.sendMessage(Text.literal(name + " picked a string!"));
 		s.sendMessage(Text.literal("the string is:" + word));
 		currentName = null;
+		return false;
 	}
 }
