@@ -53,7 +53,7 @@ public class DictionaryMod_PPQ {
         String msgToBeSent = msg.getContent().getString();
         LoggerFactory.getLogger("towerknockdown").info("[" + getPlrName(plr) + "] " + msgToBeSent);
         if (gameState != GameStates.UNSTARTED && msgToBeSent.equalsIgnoreCase("!end")) {
-            plr.sendMessage(Text.literal("Force-ending the game!"));
+            sendMsgToAll(s, "Force-ending the game!");
             gameState = GameStates.UNSTARTED;
             return false;
         }
@@ -61,7 +61,6 @@ public class DictionaryMod_PPQ {
                 msgToBeSent.equalsIgnoreCase("!begin") ||
                         (plr.equals(winner) && msgToBeSent.equalsIgnoreCase("y"))
         )) {
-            winner = null;
             games++;
             gameState = GameStates.MASTERMIND_SETTING_WORD;
             sendMsgToAll(s, "Beginning the game!");
@@ -69,13 +68,16 @@ public class DictionaryMod_PPQ {
             List<ServerPlayerEntity> plrs = s.getPlayerManager().getPlayerList();
             Random rng = new Random();
             mastermind = plrs.get(rng.nextInt(plrs.size()));    //get a random player unless..
-            //if
+            //VERY UNCLEAN AAAA
+            if (plr.equals(winner) && msgToBeSent.equalsIgnoreCase("y"))
+                mastermind = winner;
+            winner = null;
             allButMM = new ArrayList<>();
             for (ServerPlayerEntity p : plrs) {
                 if (!p.equals(mastermind))  allButMM.add(p);
             }
             sendMsgToSome(allButMM, "Waiting on " + getPlrName(mastermind) + " to enter their word...");
-            plr.sendMessage(Text.literal("You are the mastermind, enter your word:"));
+            mastermind.sendMessage(Text.literal("You are the mastermind, enter your word:"));
             return false;
         }
         else if (gameState == GameStates.UNSTARTED && msgToBeSent.toLowerCase().contains("!settimelimit")) {
@@ -95,13 +97,16 @@ public class DictionaryMod_PPQ {
             }
             return false;
         }
-        else if (gameState == GameStates.UNSTARTED && plr.equals(winner) && msgToBeSent.equalsIgnoreCase("n"))
+        else if (gameState == GameStates.UNSTARTED && plr.equals(winner) && msgToBeSent.equalsIgnoreCase("n")) {
+            winner = null;
             sendMsgToAll(s, "Type \"!begin\" to start a new game...");
+        }
         else if (gameState == GameStates.MASTERMIND_SETTING_WORD && plr.equals(mastermind)) {
             boolean validWord;
             do {
                 theWord = msgToBeSent.strip().toUpperCase();
                 revealedLetters = new boolean[theWord.length()];
+                //first letter is revealed by default
                 revealedLetters[0] = true;
                 validWord = !theWord.isEmpty();
                 if (!validWord) plr.sendMessage(Text.literal("Invalid word..."));
@@ -126,7 +131,7 @@ public class DictionaryMod_PPQ {
             int currentGame = games;
             waitFor(s, maxTime * 5/6 * 20, nothingArgs,
                     o -> {
-                        if (games == currentGame) {
+                        if (games == currentGame && gameState == GameStates.PLAYERS_GUESSING) {
                             //game ends soon; send warning message
                             sendMsgToAll(s, "There are " + maxTime / 6 + " seconds left to guess!");
                         }
