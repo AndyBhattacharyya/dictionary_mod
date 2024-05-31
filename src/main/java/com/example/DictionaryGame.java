@@ -13,6 +13,11 @@ import net.minecraft.world.World;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Array;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
 enum GAMESTATE {
 	GAMESTART, GAMEEXAMPLE, NOGAME, ONGOING
 }
@@ -31,51 +36,45 @@ public class DictionaryGame implements ModInitializer {
 		LOGGER.info("Hello Fabric world!");
 		ServerMessageEvents.ALLOW_CHAT_MESSAGE.register(this::onMsgSent);
 	}
-
-
-	GAMESTATE state = GAMESTATE.NOGAME;
-	String initplayername = null;
-	String gameword = "";
-	String gameexamlpe ="";
-
+	HashMap<String, HashSet<PlayerEntity>> gameque = new HashMap<String, HashSet<PlayerEntity>>();
+	HashMap<String, GameSession> ActiveGames = new HashMap<String, GameSession>();
 	public boolean onMsgSent(SignedMessage msg, ServerPlayerEntity plr, MessageType.Parameters params) {
+		//Que Mechanism
 		String message = msg.getContent().getString();
-		switch(state){
-			case NOGAME:
-				if(message.equalsIgnoreCase("!dict")){
-					initplayername = plr.getDisplayName().getString();
-					plr.getServer().getPlayerManager().broadcast(Text.literal("It is now "+initplayername+" turn"), false);
-					plr.sendMessage(Text.literal("Enter your word:"));
-					state = GAMESTATE.GAMESTART;
-					return false;
-				}
-			case GAMESTART:
-				if(plr.getDisplayName().getString().equals(initplayername)){
-					gameword = message;
-					plr.sendMessage(Text.literal("Enter your hint:"));
-					state = GAMESTATE.GAMEEXAMPLE;
-					return false;
-				}
-			case GAMEEXAMPLE:
-				if(plr.getDisplayName().getString().equals(initplayername)) {
-					gameexamlpe = message;
-					plr.getServer().getPlayerManager().broadcast(Text.literal(initplayername + " Hint: " + gameexamlpe), false);
-					return false;
-				}
-			case ONGOING:
-				if(!plr.getDisplayName().getString().equals(initplayername)){
-					if(message.equalsIgnoreCase(gameword)){
-						String tmpname = plr.getDisplayName().getString();
-						plr.getServer().getPlayerManager().broadcast(Text.literal(tmpname+ " Got it Correct: " + gameword), false);
-						plr.getServer().getPlayerManager().broadcast(Text.literal("It is now "+tmpname+" turn"), false);
-						plr.sendMessage(Text.literal("Enter your word:"));
-						state = GAMESTATE.GAMESTART;
-						initplayername = tmpname;
-					}
+		String sender = plr.getDisplayName().getString().toLowerCase();
 
-				}
-
+		if(message.equalsIgnoreCase("!dict") && !gameque.containsKey(sender)){
+			HashSet<PlayerEntity> tmp = new HashSet<PlayerEntity>();
+			tmp.add(plr);
+			gameque.put(sender, tmp) ;
 		}
-	return true;
+		else if(message.contains("!join")){
+			//With key-based data structure, we can easily check whether or not a person exists in the que
+			String playerowner = message.split(" ")[1].toLowerCase();
+			if(gameque.containsKey(playerowner) && !sender.equals(playerowner)){
+				HashSet<PlayerEntity>tmp = gameque.get(playerowner);
+				tmp.add(plr);
+				gameque.put(playerowner, tmp);
+			}
+			else {
+				plr.sendMessage(Text.literal("Player Does Not Exist"));
+			}
+		}
+		else if(message.equalsIgnoreCase("!start") && gameque.containsKey(sender)){
+			//Initialize game session and take it off the que
+			HashSet<PlayerEntity> tmp = gameque.get(sender);
+			gameque.remove(sender,tmp);
+			ActiveGames.put(sender, new GameSession(sender, tmp, plr.getServer().getTicks()));
+			plr.getServer().getPlayerManager().broadcast(Text.literal(sender + " started the game"), false);
+		}
+
+		//Iterate through all games and check if the player who is sending the message is in the game, then update game state
+		for (Map.Entry<String, GameSession> entry: ActiveGames.entrySet()){
+			GameSession tmp = entry.getValue();
+			if(tmp.playeringame(plr)){
+				ActiveGames.get(sender).UpdateGameState(plr, message);
+			}
+		}
+		return false;
 	}
 }
