@@ -2,6 +2,7 @@ package com.example;
 
 import net.fabricmc.api.ModInitializer;
 
+import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,7 @@ public class Events implements ModInitializer {
 		// Proceed with mild caution.
 		LOGGER.info("Hello Fabric world!");
 //		ServerMessageEvents.CHAT_MESSAGE.register(DictionaryMod_PPQ::onChatMessage);
-		//ServerMessageEvents.ALLOW_CHAT_MESSAGE.register(MultiplicationGame::onMsgSent);
+		ServerMessageEvents.ALLOW_CHAT_MESSAGE.register(MultiplicationGame::onMsgSent);
 		//ServerTickEvents.START_SERVER_TICK.register(MultiplicationGame::ticking);
 	}
 }
